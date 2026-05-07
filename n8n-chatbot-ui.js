@@ -25,16 +25,31 @@
             width: 64px; height: 64px; border-radius: 50%;
             background: var(--primary); color: white; border: none; cursor: pointer;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .naten-chat-toggle:hover{
+            transform: scale(1.05); 
+            filter: brightness(1.1); 
+            transition: all 0.2s ease; 
         }
         .naten-chat-box {
             position: fixed; bottom: 110px; ${config.style.position}: 32px;
             width: 380px; height: 580px; border-radius: 24px;
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 1); backdrop-filter: blur(10px);
             box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: none;
             flex-direction: column; z-index: 9999; overflow: hidden;
             border: 1px solid rgba(255,255,255,0.5);
         }
         .naten-chat-box.active { display: flex; }
+        .naten-send:hover
+        {
+            color: var(--primary);
+            transform: translateX(3px); 
+            transition: all 0.2s ease;
+            cursor: pointer;
+            }
         .naten-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
         .naten-msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
         .naten-msg.user { background: var(--primary); color: white; align-self: flex-end; }
@@ -95,7 +110,7 @@
         return await res.json();
     }
 
-    async function handleMsg(displayOverride, hiddenData = null) {
+    async function handleSendMessage(displayOverride, hiddenData = null) {
         const val = displayOverride || input.value.trim();
         if (!val) return;
 
