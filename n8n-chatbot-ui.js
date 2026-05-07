@@ -133,7 +133,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'naten-btn';
                 btn.innerText = b;
-                btn.onclick = () => handleMsg(b);
+                btn.onclick = () => handleSendMessage(b);
                 btnWrap.appendChild(btn);
             });
             msgs.appendChild(btnWrap);
@@ -183,8 +183,8 @@
         }
     }
 
-    document.getElementById('naten-send').onclick = () => handleMsg();
-    input.onkeypress = (e) => { if (e.key === 'Enter') handleMsg(); };
+    document.getElementById('naten-send').onclick = () => handleSendMessage();
+    input.onkeypress = (e) => { if (e.key === 'Enter') handleSendMessage(); };
 
     // Initial Welcome
     msgs.innerHTML += `<div class="naten-msg bot">${config.branding.welcomeText}</div>`;
