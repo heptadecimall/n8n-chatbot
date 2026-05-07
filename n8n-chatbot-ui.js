@@ -1,4 +1,4 @@
-(function() {
+(function () {
     // 1. Load Font
     const fontLink = document.createElement('link');
     fontLink.rel = 'stylesheet';
@@ -8,25 +8,25 @@
     // 2. Get Config from the Window object
     const config = window.ChatWidgetConfig || {
         webhook: { url: '' },
-        branding: { name: 'AI Assistant', welcomeText: 'Hello!' },
+        branding: { logo: "https://www.shutterstock.com/image-vector/chat-bot-icon-virtual-smart-600nw-2478937553.jpg", name: 'Naten AI', welcomeText: 'Hello!', inputText: 'Type your message...' },
         style: { primaryColor: '#854fff' }
     };
 
     // 3. Inject Enhanced Styles (Glassmorphism + Sora)
     const styleSheet = document.createElement('style');
     styleSheet.textContent = `
-        .eden-chat-wrapper {
+        .naten-chat-wrapper {
             font-family: 'Sora', sans-serif;
             --primary: ${config.style.primaryColor};
             --secondary: ${config.style.secondaryColor || config.style.primaryColor};
         }
-        .eden-chat-toggle {
+        .naten-chat-toggle {
             position: fixed; bottom: 32px; ${config.style.position}: 32px;
             width: 64px; height: 64px; border-radius: 50%;
             background: var(--primary); color: white; border: none; cursor: pointer;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 9999;
         }
-        .eden-chat-box {
+        .naten-chat-box {
             position: fixed; bottom: 110px; ${config.style.position}: 32px;
             width: 380px; height: 580px; border-radius: 24px;
             background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
@@ -34,33 +34,34 @@
             flex-direction: column; z-index: 9999; overflow: hidden;
             border: 1px solid rgba(255,255,255,0.5);
         }
-        .eden-chat-box.active { display: flex; }
-        .eden-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .eden-msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
-        .eden-msg.user { background: var(--primary); color: white; align-self: flex-end; }
-        .eden-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee; }
+        .naten-chat-box.active { display: flex; }
+        .naten-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .naten-msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+        .naten-msg.user { background: var(--primary); color: white; align-self: flex-end; }
+        .naten-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee; }
         
         /* Materialized Buttons */
-        .eden-btn { 
+        .naten-btn { 
             padding: 8px 12px; border-radius: 20px; border: 1px solid var(--primary);
             background: white; color: var(--primary); cursor: pointer; margin: 4px 4px 0 0; font-family: 'Sora';
             transition: 0.2s; font-size: 12px;
         }
-        .eden-btn:hover { background: var(--primary); color: white; }
+        .naten-btn:hover { background: var(--primary); color: white; }
 
         /* Materialized Forms */
-        .eden-form { background: #f9f9f9; padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px solid #eee; }
-        .eden-form input { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora'; box-sizing: border-box; }
-        .eden-form button { width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: 600; }
+        .naten-form { background: #f9f9f9; padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px solid #eee; }
+        .naten-form input { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora'; box-sizing: border-box; }
+        .naten-form button { width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: 600; }
     `;
     document.head.appendChild(styleSheet);
 
     // 4. Build UI
     const wrapper = document.createElement('div');
-    wrapper.className = 'eden-chat-wrapper';
+    wrapper.className = 'naten-chat-wrapper';
     wrapper.innerHTML = `
-        <button class="eden-chat-toggle">💬</button>
-        <div class="eden-chat-box">
+        <button class="naten-chat-toggle">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" fill="#ffffff"></path> </g></svg></button>
+        <div class="naten-chat-box">
             <div style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px;">
                 <img src="${config.branding.logo}" style="width:30px; height:30px;">
                 <div>
@@ -68,20 +69,20 @@
                     <div style="font-size:11px; color:#888;">${config.branding.responseTimeText}</div>
                 </div>
             </div>
-            <div class="eden-messages" id="eden-ms"></div>
+            <div class="naten-messages" id="naten-ms"></div>
             <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px;">
-                <input type="text" id="eden-in" placeholder="Type a message..." style="flex:1; border:none; outline:none; font-family:'Sora';">
-                <button id="eden-send" style="background:none; border:none; cursor:pointer; font-size:18px;">➤</button>
+                <input type="text" id="naten-in" placeholder="${config.branding.inputText}" style="flex:1; border:none; outline:none; font-family:'Sora';">
+                <button id="naten-send" style="background:none; border:none; cursor:pointer; font-size:18px;">➤</button>
             </div>
         </div>
     `;
     document.body.appendChild(wrapper);
 
-    const msgs = document.getElementById('eden-ms');
-    const input = document.getElementById('eden-in');
-    const box = wrapper.querySelector('.eden-chat-box');
+    const msgs = document.getElementById('naten-ms');
+    const input = document.getElementById('naten-in');
+    const box = wrapper.querySelector('.naten-chat-box');
 
-    wrapper.querySelector('.eden-chat-toggle').onclick = () => box.classList.toggle('active');
+    wrapper.querySelector('.naten-chat-toggle').onclick = () => box.classList.toggle('active');
 
     // 5. Messaging Engine
     async function apiCall(payload) {
@@ -93,25 +94,28 @@
         return await res.json();
     }
 
-    async function handleMsg(textOverride) {
-        const val = textOverride || input.value.trim();
-        if(!val) return;
+    async function handleMsg(displayOverride, hiddenData = null) {
+        const val = displayOverride || input.value.trim();
+        if (!val) return;
 
-        msgs.innerHTML += `<div class="eden-msg user">${val}</div>`;
+        // Show the pretty version (Bullet points) in the UI
+        msgs.innerHTML += `<div class="eden-msg user" style="white-space: pre-wrap;">${val}</div>`;
         input.value = '';
         msgs.scrollTop = msgs.scrollHeight;
 
-        const data = await apiCall({ chatInput: val });
-        
+        // Send the actual data (JSON) to n8n
+        const payload = hiddenData ? { formResponse: hiddenData } : { chatInput: val };
+        const data = await apiCall(payload);
+
         // Bot Text
-        msgs.innerHTML += `<div class="eden-msg bot">${data.text}</div>`;
+        msgs.innerHTML += `<div class="naten-msg bot">${data.text}</div>`;
 
         // Materialize Buttons
-        if(data.buttons) {
+        if (data.buttons) {
             const btnWrap = document.createElement('div');
             data.buttons.forEach(b => {
                 const btn = document.createElement('button');
-                btn.className = 'eden-btn';
+                btn.className = 'naten-btn';
                 btn.innerText = b;
                 btn.onclick = () => handleMsg(b);
                 btnWrap.appendChild(btn);
@@ -119,30 +123,53 @@
             msgs.appendChild(btnWrap);
         }
 
-        // Materialize Forms
-        if(data.form) {
+        // 5. SMART MATERIALIZE FORM
+        if (data.form) {
             const fDiv = document.createElement('div');
             fDiv.className = 'eden-form';
             let html = `<div style="font-weight:600; margin-bottom:10px;">${data.form.title}</div>`;
+
             data.form.fields.forEach(f => {
-                html += `<input type="${f.type || 'text'}" id="f-${f.name}" placeholder="${f.label}">`;
+                html += `
+            <div style="margin-bottom:8px;">
+                <label style="font-size:11px; color:#666;">${f.label}</label>
+                <input type="${f.type || 'text'}" 
+                       id="f-${f.name}" 
+                       class="form-input" 
+                       placeholder="${f.label}"
+                       ${f.type === 'number' ? 'step="any" inputmode="decimal"' : ''}>
+            </div>`;
             });
-            html += `<button id="f-sub">Submit</button>`;
+
+            html += `<button id="f-sub" class="form-submit">Submit</button>`;
             fDiv.innerHTML = html;
+
+            // Strict Number Validation Logic
+            const inputs = fDiv.querySelectorAll('input');
+            const subBtn = fDiv.querySelector('#f-sub');
+
             fDiv.querySelector('#f-sub').onclick = () => {
                 const results = {};
-                data.form.fields.forEach(f => results[f.name] = fDiv.querySelector(`#f-${f.name}`).value);
-                handleMsg(`Submitted: ${JSON.stringify(results)}`);
+                let displayText = `**${data.form.title} Details:**\n`; // Header for the bubble
+
+                data.form.fields.forEach(f => {
+                    const val = fDiv.querySelector(`#f-${f.name}`).value;
+                    results[f.name] = val;
+                    displayText += `• **${f.label}:** ${val}\n`; // Formats as bullet points
+                });
+
+                // 1. Send the HIDDEN JSON to n8n for processing
+                // 2. But show the BEAUTIFUL Bullet points in the chat UI
+                handleSendMessage(displayText, results);
                 fDiv.remove();
             };
             msgs.appendChild(fDiv);
         }
-        msgs.scrollTop = msgs.scrollHeight;
     }
 
-    document.getElementById('eden-send').onclick = () => handleMsg();
-    input.onkeypress = (e) => { if(e.key === 'Enter') handleMsg(); };
-    
+    document.getElementById('naten-send').onclick = () => handleMsg();
+    input.onkeypress = (e) => { if (e.key === 'Enter') handleMsg(); };
+
     // Initial Welcome
-    msgs.innerHTML += `<div class="eden-msg bot">${config.branding.welcomeText}</div>`;
+    msgs.innerHTML += `<div class="naten-msg bot">${config.branding.welcomeText}</div>`;
 })();
