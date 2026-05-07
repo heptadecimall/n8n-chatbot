@@ -186,9 +186,9 @@
     function materializeInitialOptions() {
         // 1. Get the welcome text from config
         const welcomeText = config.branding.welcomeText || "How can we help?";
-        msgs.innerHTML += `<div class="eden-msg bot">${welcomeText}</div>`;
+        msgs.innerHTML += `<div class="naten-msg bot">${welcomeText}</div>`;
 
-        // 2. Look for buttons in the config. If none exist, don't show any.
+        // 2. Look for buttons in the config
         const initialButtons = config.branding.initialButtons;
 
         if (initialButtons && Array.isArray(initialButtons)) {
@@ -197,21 +197,22 @@
             btnWrap.style.display = 'flex';
             btnWrap.style.flexWrap = 'wrap';
             btnWrap.style.gap = '8px';
+            // Align buttons based on widget position
+            btnWrap.style.justifyContent = config.style.position === 'right' ? 'flex-end' : 'flex-start';
 
             initialButtons.forEach(buttonLabel => {
                 const btn = document.createElement('button');
-                btn.className = 'eden-btn'; // Uses your hover/center styles
+                btn.className = 'naten-btn'; // Fixed class name
                 btn.innerText = buttonLabel;
 
-                // When clicked, it sends the label to your n8n handleMsg function
-                btn.onclick = () => handleMsg(buttonLabel);
+                // Use the correct function name: handleSendMessage
+                btn.onclick = () => handleSendMessage(buttonLabel);
 
                 btnWrap.appendChild(btn);
             });
 
             msgs.appendChild(btnWrap);
         }
-
         msgs.scrollTop = msgs.scrollHeight;
     }
 
@@ -221,7 +222,4 @@
     document.getElementById('naten-send').onclick = () => handleSendMessage();
     input.onkeypress = (e) => { if (e.key === 'Enter') handleSendMessage(); };
 
-    // Initial Welcome
-    msgs.innerHTML += `<div class="naten-msg bot">${config.branding.welcomeText}</div>`;
-    materializeInitialOptions();
 })();
