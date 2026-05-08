@@ -67,7 +67,27 @@
         .naten-form { background: #f9f9f9; padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px solid #eee; }
         .naten-form input { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora'; box-sizing: border-box; }
         .naten-form button { width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: 600; }
-    `;
+        /* Disclaimer Notification Badge */
+        .naten-disclaimer {
+            background: #f8f9fa;
+            color: #727272;
+            font-size: 11px;
+            padding: 12px 16px;
+            margin: -20px -20px 15px -20px; /* Aligns to the top edges of the message box */
+            text-align: center;
+            border-bottom: 1px solid #ededed;
+            line-height: 1.4;
+            position: sticky;
+            top: -20px; /* Keeps it visible even as they start scrolling */
+            z-index: 10;
+        }
+
+        .naten-disclaimer strong {
+            color: #333;
+            display: block;
+            margin-bottom: 2px;
+        }
+        `;
     document.head.appendChild(styleSheet);
 
     // 4. Build UI
@@ -184,11 +204,23 @@
     }
 
     function materializeInitialOptions() {
-        // 1. Get the welcome text from config
+
+        // 1. Clear container first to prevent double-loading
+        msgs.innerHTML = '';
+
+        // 2. Add the Disclaimer Notification Badge
+        // It pulls text from config.branding.disclaimer
+        const disclaimerText = config.branding.disclaimer || "Notis: Perbualan ini mungkin dirakam untuk tujuan kualiti.";
+        const disclaimerDiv = document.createElement('div');
+        disclaimerDiv.className = 'naten-disclaimer';
+        disclaimerDiv.innerHTML = `<strong>Sistem Notis</strong> ${disclaimerText}`;
+        msgs.appendChild(disclaimerDiv);
+
+        // 3. Get the welcome text from config
         const welcomeText = config.branding.welcomeText || "How can we help?";
         msgs.innerHTML += `<div class="naten-msg bot">${welcomeText}</div>`;
 
-        // 2. Look for buttons in the config
+        // 4. Look for buttons in the config
         const initialButtons = config.branding.initialButtons;
 
         if (initialButtons && Array.isArray(initialButtons)) {
