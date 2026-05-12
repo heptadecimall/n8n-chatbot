@@ -8,7 +8,7 @@
     // 2. Get Config from the Window object
     const config = window.ChatWidgetConfig || {
         webhook: { url: '' },
-        branding: { logo: "https://www.shutterstock.com/image-vector/chat-bot-icon-virtual-smart-600nw-2478937553.jpg", name: 'Naten AI', welcomeText: 'Hello!', inputText: 'Type your message...' },
+        branding: { logo: "https://www.shutterstock.com/image-vector/chat-bot-icon-virtual-smart-600nw-2478937553.jpg", names: 'Naten AI, Nath AI', welcomeText: 'Hello!', inputText: 'Type your message...' },
         style: { primaryColor: '#854fff' }
     };
 
@@ -91,10 +91,13 @@
         .bg{
         background-color:#fff;
         background-image:linear-gradient(135deg, transparent 0%, #fff 25%, #fff 75%, transparent 100%), url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAIklEQVQoU2N89+7dfwYsQEhIiBEkzDgkFGDzAbIY2Cv4AACvrBgJjYNGfwAAAABJRU5ErkJggg==);
-        
         }
         `;
     document.head.appendChild(styleSheet);
+
+    const nameArray = config.branding.names.split(',').map(item => item.trim());
+    const randomIndex = Math.floor(Math.random() * nameArray.length);
+    const finalName = nameArray[randomIndex];
 
     // 4. Build UI
     const wrapper = document.createElement('div');
@@ -103,15 +106,15 @@
         <button class="naten-chat-toggle">
             <svg  width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" fill="#ffffff"></path> </g></svg></button>
         <div class="naten-chat-box bg">
-            <div style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px;">
+            <div style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px; box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;">
                 <img src="${config.branding.logo}" style="width:30px; height:30px;">
                 <div>
-                    <div style="font-weight:700; font-size:16px;">${config.branding.name}</div>
+                    <div style="font-weight:700; font-size:16px;">${finalName}</div>
                     <div style="font-size:11px; color:#888;">${config.branding.responseTimeText}</div>
                 </div>
             </div>
-            <div class="naten-messages" id="naten-ms"></div>
-            <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px;">
+            <div class="naten-messages bg" id="naten-ms"></div>
+            <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px;background-color:#fff">
                 <input type="text" id="naten-in" placeholder="${config.branding.inputText}" style="flex:1; border:none; outline:none; font-family:'Sora';">
                 <button id="naten-send" style="background:none; border:none; cursor:pointer; font-size:18px;">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11.5003 12H5.41872M5.24634 12.7972L4.24158 15.7986C3.69128 17.4424 3.41613 18.2643 3.61359 18.7704C3.78506 19.21 4.15335 19.5432 4.6078 19.6701C5.13111 19.8161 5.92151 19.4604 7.50231 18.7491L17.6367 14.1886C19.1797 13.4942 19.9512 13.1471 20.1896 12.6648C20.3968 12.2458 20.3968 11.7541 20.1896 11.3351C19.9512 10.8529 19.1797 10.5057 17.6367 9.81135L7.48483 5.24303C5.90879 4.53382 5.12078 4.17921 4.59799 4.32468C4.14397 4.45101 3.77572 4.78336 3.60365 5.22209C3.40551 5.72728 3.67772 6.54741 4.22215 8.18767L5.24829 11.2793C5.34179 11.561 5.38855 11.7019 5.407 11.8459C5.42338 11.9738 5.42321 12.1032 5.40651 12.231C5.38768 12.375 5.34057 12.5157 5.24634 12.7972Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
