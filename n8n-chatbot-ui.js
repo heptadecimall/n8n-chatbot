@@ -88,11 +88,30 @@
             margin-bottom: 2px;
         }
 
-        .bg{
-            backgroundSize: "40px 40px",
-            WebkitMaskImage:"radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%)",
-            maskImage:"radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%)"
+        .gautammsharma  {
+        width: 100%;
+        min-height: 100vh; /* Changed to 100vh to ensure it fills the viewport like min-h-screen */
+        position: relative;
+        z-index: 0;
+        
+        /* Layer 1 (Top): The grid lines */
+        /* Layer 2 (Bottom): The solid background color */
+        background-image: 
+            linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+            linear-gradient(to bottom, #e2e8f0 1px, transparent 1px),
+            linear-gradient(#f8fafc, #f8fafc);
+        
+        background-size: 20px 30px, 20px 30px, auto;
+        
+        /* The mask is applied to the background layers using composite properties */
+        -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%), linear-gradient(#000, #000);
+        mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%), linear-gradient(#000, #000);
+        
+        /* This prevents the solid background color from being cut off by the radial mask */
+        -webkit-mask-composite: source-in, destination-over;
+        mask-composite: intersect; 
         }
+
         `;
     document.head.appendChild(styleSheet);
 
@@ -102,7 +121,7 @@
     wrapper.innerHTML = `
         <button class="naten-chat-toggle">
             <svg  width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" fill="#ffffff"></path> </g></svg></button>
-        <div class="naten-chat-box bg">
+        <div class="naten-chat-box gautammsharma">
             <div style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px;">
                 <img src="${config.branding.logo}" style="width:30px; height:30px;">
                 <div>
