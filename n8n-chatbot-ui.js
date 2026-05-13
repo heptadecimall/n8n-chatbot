@@ -40,7 +40,7 @@
             background: rgba(255, 255, 255, 1); backdrop-filter: blur(10px);
             box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: none;
             flex-direction: column; z-index: 9999; overflow: hidden;
-            /* --- gray-500 Outline for the whole box --- */
+            /* gray-500 external border line */
             border: 1px solid #6b7280; 
         }
         .naten-chat-box.active { display: flex; }
@@ -48,6 +48,7 @@
         #naten-send {
             background: none; border: none; cursor: pointer; font-size: 18px;
             transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center;
         }
         #naten-send:hover {
             color: var(--primary);
@@ -59,10 +60,10 @@
         .naten-msg.user { background: var(--primary); color: white; align-self: flex-end; }
         .naten-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee; }
         
-        /* Materialized Buttons (Left side alignment default) */
+        /* Materialized Option Button Wrapper */
         .naten-btn-wrapper {
             display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
-            justify-content: flex-start;
+            justify-content: flex-start; /* Kept on the left under bot bubbles */
         }
         .naten-btn { 
             padding: 8px 12px; border-radius: 20px; border: 1px solid var(--primary);
@@ -71,26 +72,35 @@
         }
         .naten-btn:hover { background: var(--primary); color: white; }
 
-        /* Materialized Forms (Left side alignment default) */
+        /* Materialized Forms (Left side alignment) */
         .naten-form { background: #f9f9f9; padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px solid #eee; align-self: flex-start; width: 85%; box-sizing: border-box; }
         .naten-form input { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora'; box-sizing: border-box; }
         .naten-form button { width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: 600; }
         
-        /* Disclaimer Notification Badge */
+        /* --- HUGE UI ALERT/NOTIF BADGE DISCLAIMER --- */
         .naten-disclaimer {
-            background: #f8f9fa;
-            color: #727272;
-            font-size: 11px;
-            padding: 12px 16px;
-            margin: -20px -20px 15px -20px;
-            text-align: center;
-            border-bottom: 1px solid #ededed;
-            line-height: 1.4;
-            position: sticky;
-            top: -20px;
-            z-index: 10;
+            background: #fffbeb; /* Soft yellowish background */
+            color: #92400e; /* Deep amber/brown text */
+            font-size: 12px;
+            padding: 14px 16px;
+            margin: -5px 0 10px 0;
+            border-radius: 16px; /* Fully rounded card look */
+            border: 1px solid #fef3c7; /* Matching yellowish border inner highlight */
+            outline: 1px solid #f59e0b; /* Prominent amber outline edge */
+            line-height: 1.5;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
-        .naten-disclaimer strong { color: #333; display: block; margin-bottom: 2px; }
+        .naten-disclaimer strong { 
+            color: #78350f; 
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
         .bg {
             background-color:#fff;
@@ -110,7 +120,7 @@
         <button class="naten-chat-toggle">
             <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" fill="#ffffff"></path> </g></svg></button>
         <div class="naten-chat-box bg">
-            <div style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px; background-color:#fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); z-index: 5;">
+            <div style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px; background-color:#fff; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06); z-index: 10; position: relative;">
                 <img src="${config.branding.logo}" style="width:30px; height:30px; border-radius:50%;">
                 <div>
                     <div style="font-weight:700; font-size:16px;">${finalName}</div>
@@ -118,7 +128,7 @@
                 </div>
             </div>
             <div class="naten-messages bg" id="naten-ms"></div>
-            <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px; background-color:#fff; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); z-index: 5;">
+            <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px; background-color:#fff; box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.04); z-index: 10; position: relative;">
                 <input type="text" id="naten-in" placeholder="${config.branding.inputText}" style="flex:1; border:none; outline:none; font-family:'Sora';">
                 <button id="naten-send">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11.5003 12H5.41872M5.24634 12.7972L4.24158 15.7986C3.69128 17.4424 3.41613 18.2643 3.61359 18.7704C3.78506 19.21 4.15335 19.5432 4.6078 19.6701C5.13111 19.8161 5.92151 19.4604 7.50231 18.7491L17.6367 14.1886C19.1797 13.4942 19.9512 13.1471 20.1896 12.6648C20.3968 12.2458 20.3968 11.7541 20.1896 11.3351C19.9512 10.8529 19.1797 10.5057 17.6367 9.81135L7.48483 5.24303C5.90879 4.53382 5.12078 4.17921 4.59799 4.32468C4.14397 4.45101 3.77572 4.78336 3.60365 5.22209C3.40551 5.72728 3.67772 6.54741 4.22215 8.18767L5.24829 11.2793C5.34179 11.561 5.38855 11.7019 5.407 11.8459C5.42338 11.9738 5.42321 12.1032 5.40651 12.231C5.38768 12.375 5.34057 12.5157 5.24634 12.7972Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
@@ -147,19 +157,19 @@
         const val = displayOverride || input.value.trim();
         if (!val) return;
 
-        // User logs/text ALWAYS show on the Right side
+        // User texts/selections ALWAYS align to the Right
         msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${val}</div>`;
         input.value = '';
         msgs.scrollTop = msgs.scrollHeight;
 
-        // Send the actual data (JSON) to n8n
+        // Send data payload to n8n
         const payload = hiddenData ? { formResponse: hiddenData } : { chatInput: val };
         const data = await apiCall(payload);
 
-        // Bot Text ALWAYS shows on the Left side
+        // Bot responds on Left side
         msgs.innerHTML += `<div class="naten-msg bot">${data.text}</div>`;
 
-        // Materialize Dynamic Buttons (Stay on the Left)
+        // Materialize Dynamic Option Choices (Positioned on the Left under Bot)
         if (data.buttons) {
             const btnWrap = document.createElement('div');
             btnWrap.className = 'naten-btn-wrapper';
@@ -169,7 +179,7 @@
                 btn.className = 'naten-btn';
                 btn.innerText = b;
                 btn.onclick = () => {
-                    btnWrap.remove(); // Button cluster vanishes on selection
+                    btnWrap.remove(); // Options collapse/vanish cleanly once clicked
                     handleSendMessage(b);
                 };
                 btnWrap.appendChild(btn);
@@ -177,7 +187,7 @@
             msgs.appendChild(btnWrap);
         }
 
-        // 5. SMART MATERIALIZE FORM (Stays on the Left)
+        // Materialize Interactive Forms (Positioned on the Left under Bot)
         if (data.form) {
             const fDiv = document.createElement('div');
             fDiv.className = 'naten-form';
@@ -208,35 +218,35 @@
                     displayText += `• **${f.label}:** ${val}\n`;
                 });
 
-                fDiv.remove(); // Clear out the entire form container
-                handleSendMessage(displayText, results); // Sends logs cleanly to the Right side
+                fDiv.remove(); // Forms completely vanish upon interaction completion
+                handleSendMessage(displayText, results); // Log parameters right-aligned
             };
             msgs.appendChild(fDiv);
         }
         msgs.scrollTop = msgs.scrollHeight;
     }
 
-    // Initial load configurations
+    // Initial message window load rules
     function materializeInitialOptions() {
         msgs.innerHTML = '';
 
-        // Disclaimer Badge (Sticky Top)
+        // Badge Disclaimer (First element inside panel stack)
         const disclaimerText = config.branding.disclaimer || "Notis: Perbualan ini mungkin dirakam untuk tujuan kualiti.";
         const disclaimerDiv = document.createElement('div');
         disclaimerDiv.className = 'naten-disclaimer';
-        disclaimerDiv.innerHTML = `<strong>Sistem Notis</strong> ${disclaimerText}`;
+        disclaimerDiv.innerHTML = `<strong>⚠️ Sistem Notis</strong><span>${disclaimerText}</span>`;
         msgs.appendChild(disclaimerDiv);
 
-        // Welcome message (Left Side)
+        // Greetings bubble (Left side)
         const welcomeText = config.branding.welcomeText || "How can we help?";
         msgs.innerHTML += `<div class="naten-msg bot">${welcomeText}</div>`;
 
-        // Load Initial Configuration Buttons (Left Side Alignment)
+        // Configuration-driven layout selection buttons
         const initialButtons = config.branding.initialButtons;
 
         if (initialButtons && Array.isArray(initialButtons)) {
             const btnWrap = document.createElement('div');
-            btnWrap.className = 'naten-btn-wrapper'; // Aligns to the Left under Hasan
+            btnWrap.className = 'naten-btn-wrapper';
 
             initialButtons.forEach(buttonLabel => {
                 const btn = document.createElement('button');
@@ -244,8 +254,8 @@
                 btn.innerText = buttonLabel;
 
                 btn.onclick = () => {
-                    btnWrap.remove(); // Cluster vanishes instantly on click
-                    handleSendMessage(buttonLabel); // Output sends directly to the Right side
+                    btnWrap.remove(); // Disappears instantly on click action
+                    handleSendMessage(buttonLabel); // Directs log context to the Right side
                 };
 
                 btnWrap.appendChild(btn);
