@@ -142,6 +142,10 @@
     const randomIndex = Math.floor(Math.random() * nameArray.length);
     const finalName = nameArray[randomIndex];
 
+    // Track internal onboarding flow steps locally before executing remote API engine operations
+    let internalState = "CHOOSE_FLOW"; // CHOOSE_FLOW, AWAITING_NAME, READY_FOR_N8N
+    let userName = "";
+
     // 4. Build UI
     const wrapper = document.createElement('div');
     wrapper.className = 'naten-chat-wrapper';
@@ -173,13 +177,13 @@
 
     wrapper.querySelector('.naten-chat-toggle').onclick = () => box.classList.toggle('active');
 
-    function toggleChatInput(disable) {
+    function toggleChatInput(disable, placeholderText = null) {
         input.disabled = disable;
         sendBtn.disabled = disable;
         if (disable) {
-            input.placeholder = "Sila lengkapkan pilihan atau borang di atas...";
+            input.placeholder = placeholderText || "Sila lengkapkan pilihan atau borang di atas...";
         } else {
-            input.placeholder = config.branding.inputText;
+            input.placeholder = placeholderText || config.branding.inputText;
         }
     }
 
@@ -193,19 +197,8 @@
         return await res.json();
     }
 
-    async function handleSendMessage(displayOverride, hiddenData = null) {
-        const val = displayOverride || input.value.trim();
-        if (!val) return;
-
-        msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${val}</div>`;
-        input.value = '';
-        msgs.scrollTop = msgs.scrollHeight;
-
-        toggleChatInput(false);
-
-        const payload = hiddenData ? { formResponse: hiddenData } : { chatInput: val };
-        const data = await apiCall(payload);
-
+    // Process rendering the structural responses from n8n engine payload matches
+    function renderBotResponse(data) {
         msgs.innerHTML += `<div class="naten-msg bot">${data.text}</div>`;
 
         if (data.buttons) {
@@ -267,6 +260,85 @@
         msgs.scrollTop = msgs.scrollHeight;
     }
 
+    async function handleSendMessage(displayOverride, hiddenData = null) {
+        const val = displayOverride || input.value.trim();
+        if (!val) return;
+
+        // Render User bubble immediately
+        msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${val}</div>`;
+        input.value = '';
+        msgs.scrollTop = msgs.scrollHeight;
+
+        // LOCAL INTERCEPT LOOP: Check onboarding states before passing values out to remote n8n instances
+        if (internalState === "AWAITING_NAME") {
+            userName = val;
+            internalState = "READY_FOR_N8N";
+            toggleChatInput(false);
+
+            // Generate immediate internal local confirmation greeting turn
+            setTimeout(() => {
+                msgs.innerHTML += `<div class="naten-msg bot">Terima kasih ${userName}. Ada apa yang boleh saya bantu mengenai sistem hari ini?</div>`;
+                msgs.scrollTop = msgs.scrollHeight;
+            }, 400);
+            return;
+        }
+
+        // Standard operational pipeline state: Pass payload parameters straight to n8n runtime
+        const payload = hiddenData ? { formResponse: hiddenData, name: userName } : { chatInput: val, name: userName };
+        const data = await apiCall(payload);
+        renderBotResponse(data);
+    }
+
+    // Local explicit instantiation for Onboarding flows (Pertanyaan vs Aduan) avoiding early webhook calls
+    function instantiateLocalForm() {
+        toggleChatInput(true);
+        const fDiv = document.createElement('div');
+        fDiv.className = 'naten-form';
+        fDiv.innerHTML = `
+            <div style="font-weight:600; margin-bottom:10px;">Borang Aduan Rasmi</div>
+            <div style="margin-bottom:8px;">
+                <label style="font-size:11px; color:#666;">Nama Penuh</label>
+                <input type="text" id="f-name" class="form-input" placeholder="Nama Penuh">
+            </div>
+            <div style="margin-bottom:8px;">
+                <label style="font-size:11px; color:#666;">Nombor Pesanan</label>
+                <input type="number" id="f-order_id" class="form-input" placeholder="Nombor Pesanan" step="any" inputmode="decimal">
+            </div>
+            <div style="margin-bottom:8px;">
+                <label style="font-size:11px; color:#666;">Sebab Aduan</label>
+                <input type="text" id="f-reason" class="form-input" placeholder="Sebab Aduan">
+            </div>
+            <button id="f-sub" class="form-submit">Submit</button>
+        `;
+
+        fDiv.querySelector('#f-sub').onclick = async () => {
+            const results = {
+                name: fDiv.querySelector('#f-name').value,
+                order_id: fDiv.querySelector('#f-order_id').value,
+                reason: fDiv.querySelector('#f-reason').value
+            };
+
+            let displayText = `**Borang Aduan Rasmi Details:**\n`;
+            displayText += `• **Nama Penuh:** ${results.name}\n`;
+            displayText += `• **Nombor Pesanan:** ${results.order_id}\n`;
+            displayText += `• **Sebab Aduan:** ${results.reason}\n`;
+
+            fDiv.remove();
+            internalState = "READY_FOR_N8N";
+            toggleChatInput(false);
+
+            // Pass execution values out to remote webhook configurations cleanly now
+            msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${displayText}</div>`;
+            msgs.scrollTop = msgs.scrollHeight;
+
+            const data = await apiCall({ formResponse: results, initialFlow: "Aduan" });
+            renderBotResponse(data);
+        };
+
+        msgs.appendChild(fDiv);
+        msgs.scrollTop = msgs.scrollHeight;
+    }
+
     function materializeInitialOptions() {
         msgs.innerHTML = '';
 
@@ -279,29 +351,39 @@
         const welcomeText = config.branding.welcomeText || "How can we help?";
         msgs.innerHTML += `<div class="naten-msg bot">${welcomeText}</div>`;
 
-        const initialButtons = config.branding.initialButtons;
+        // Explicitly load standard options array layout structure
+        toggleChatInput(true, "Sila pilih Pertanyaan atau Aduan untuk bermula...");
+        const btnWrap = document.createElement('div');
+        btnWrap.className = 'naten-btn-wrapper';
 
-        if (initialButtons && Array.isArray(initialButtons)) {
-            toggleChatInput(true);
-            const btnWrap = document.createElement('div');
-            btnWrap.className = 'naten-btn-wrapper';
+        const initialButtons = ["Pertanyaan", "Aduan"];
 
-            initialButtons.forEach(buttonLabel => {
-                const btn = document.createElement('button');
-                btn.className = 'naten-btn';
-                btn.innerText = buttonLabel;
+        initialButtons.forEach(buttonLabel => {
+            const btn = document.createElement('button');
+            btn.className = 'naten-btn';
+            btn.innerText = buttonLabel;
 
-                btn.onclick = () => {
-                    btnWrap.remove();
-                    toggleChatInput(false);
-                    handleSendMessage(buttonLabel);
-                };
+            btn.onclick = () => {
+                btnWrap.remove();
 
-                btnWrap.appendChild(btn);
-            });
+                if (buttonLabel === "Aduan") {
+                    msgs.innerHTML += `<div class="naten-msg user">${buttonLabel}</div>`;
+                    msgs.innerHTML += `<div class="naten-msg bot">Sila isi borang aduan di bawah:</div>`;
+                    instantiateLocalForm();
+                } else {
+                    // Pertanyaan path selection: Capture tracking identity locally
+                    internalState = "AWAITING_NAME";
+                    msgs.innerHTML += `<div class="naten-msg user">${buttonLabel}</div>`;
+                    msgs.innerHTML += `<div class="naten-msg bot">Sila nyatakan nama penuh anda terlebih dahulu:</div>`;
+                    toggleChatInput(false, "Taip nama anda di sini...");
+                    msgs.scrollTop = msgs.scrollHeight;
+                }
+            };
 
-            msgs.appendChild(btnWrap);
-        }
+            btnWrap.appendChild(btn);
+        });
+
+        msgs.appendChild(btnWrap);
         msgs.scrollTop = msgs.scrollHeight;
     }
 
