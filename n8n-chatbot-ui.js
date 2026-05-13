@@ -53,6 +53,11 @@
             color: var(--primary);
             transform: translateX(3px); 
         }
+        #naten-send:disabled {
+            color: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
         
         .naten-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
         .naten-msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
@@ -125,6 +130,11 @@
             background-color:#fff;
             background-image:linear-gradient(135deg, transparent 0%, #fff 25%, #fff 75%, transparent 100%), url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAIklEQVQoU2N89+7dfwYsQEhIiBEkzDgkFGDzAbIY2Cv4AACvrBgJjYNGfwAAAABJRU5ErkJggg==);
         }
+        
+        #naten-in:disabled {
+            background-color: #f9f9f9;
+            cursor: not-allowed;
+        }
     `;
     document.head.appendChild(styleSheet);
 
@@ -159,8 +169,19 @@
     const msgs = document.getElementById('naten-ms');
     const input = document.getElementById('naten-in');
     const box = wrapper.querySelector('.naten-chat-box');
+    const sendBtn = document.getElementById('naten-send');
 
     wrapper.querySelector('.naten-chat-toggle').onclick = () => box.classList.toggle('active');
+
+    function toggleChatInput(disable) {
+        input.disabled = disable;
+        sendBtn.disabled = disable;
+        if (disable) {
+            input.placeholder = "Sila lengkapkan pilihan atau borang di atas...";
+        } else {
+            input.placeholder = config.branding.inputText;
+        }
+    }
 
     // 5. Messaging Engine
     async function apiCall(payload) {
@@ -180,12 +201,15 @@
         input.value = '';
         msgs.scrollTop = msgs.scrollHeight;
 
+        toggleChatInput(false);
+
         const payload = hiddenData ? { formResponse: hiddenData } : { chatInput: val };
         const data = await apiCall(payload);
 
         msgs.innerHTML += `<div class="naten-msg bot">${data.text}</div>`;
 
         if (data.buttons) {
+            toggleChatInput(true);
             const btnWrap = document.createElement('div');
             btnWrap.className = 'naten-btn-wrapper';
 
@@ -195,6 +219,7 @@
                 btn.innerText = b;
                 btn.onclick = () => {
                     btnWrap.remove();
+                    toggleChatInput(false);
                     handleSendMessage(b);
                 };
                 btnWrap.appendChild(btn);
@@ -203,6 +228,7 @@
         }
 
         if (data.form) {
+            toggleChatInput(true);
             const fDiv = document.createElement('div');
             fDiv.className = 'naten-form';
             let html = `<div style="font-weight:600; margin-bottom:10px;">${data.form.title}</div>`;
@@ -233,6 +259,7 @@
                 });
 
                 fDiv.remove();
+                toggleChatInput(false);
                 handleSendMessage(displayText, results);
             };
             msgs.appendChild(fDiv);
@@ -255,6 +282,7 @@
         const initialButtons = config.branding.initialButtons;
 
         if (initialButtons && Array.isArray(initialButtons)) {
+            toggleChatInput(true);
             const btnWrap = document.createElement('div');
             btnWrap.className = 'naten-btn-wrapper';
 
@@ -265,6 +293,7 @@
 
                 btn.onclick = () => {
                     btnWrap.remove();
+                    toggleChatInput(false);
                     handleSendMessage(buttonLabel);
                 };
 
@@ -278,7 +307,7 @@
 
     materializeInitialOptions();
 
-    document.getElementById('naten-send').onclick = () => handleSendMessage();
-    input.onkeypress = (e) => { if (e.key === 'Enter') handleSendMessage(); };
+    sendBtn.onclick = () => handleSendMessage();
+    input.onkeypress = (e) => { if (e.key === 'Enter' && !input.disabled) handleSendMessage(); };
 
 })();
