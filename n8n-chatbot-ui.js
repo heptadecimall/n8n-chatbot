@@ -64,6 +64,23 @@
         .naten-msg.user { background: var(--primary); color: white; align-self: flex-end; }
         .naten-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee; }
         
+        /* --- Typing Indicator Animation --- */
+        .naten-typing-indicator {
+            background: white; border: 1px solid #eee; align-self: flex-start;
+            display: none; items-center: center; gap: 4px; padding: 14px 18px; border-radius: 16px;
+        }
+        .naten-typing-dot {
+            width: 6px; height: 6px; background: #888; border-radius: 50%;
+            animation: natenBounce 1.4s infinite ease-in-out both;
+        }
+        .naten-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .naten-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes natenBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
         /* Materialized Option Button Wrapper */
         .naten-btn-wrapper {
             display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
@@ -131,9 +148,19 @@
             background-image:linear-gradient(135deg, transparent 0%, #fff 25%, #fff 75%, transparent 100%), url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAIklEQVQoU2N89+7dfwYsQEhIiBEkzDgkFGDzAbIY2Cv4AACvrBgJjYNGfwAAAABJRU5ErkJggg==);
         }
         
+        /* --- Input Bar Area Style Update --- */
+        .naten-input-area {
+            padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; 
+            background-color: #fff; box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.04); 
+            z-index: 10; position: relative; transition: background-color 0.2s ease;
+        }
+        .naten-input-area.disabled-bg {
+            background-color: #f3f4f6 !important; /* gray-100 full container area tint */
+        }
         #naten-in:disabled {
-            background-color: #f9f9f9;
+            background-color: transparent;
             cursor: not-allowed;
+            color: #9ca3af;
         }
     `;
     document.head.appendChild(styleSheet);
@@ -142,8 +169,7 @@
     const randomIndex = Math.floor(Math.random() * nameArray.length);
     const finalName = nameArray[randomIndex];
 
-    // Track internal onboarding flow steps locally before executing remote API engine operations
-    let internalState = "CHOOSE_FLOW"; // CHOOSE_FLOW, AWAITING_NAME, READY_FOR_N8N
+    let internalState = "CHOOSE_FLOW";
     let userName = "";
 
     // 4. Build UI
@@ -161,7 +187,7 @@
                 </div>
             </div>
             <div class="naten-messages bg" id="naten-ms"></div>
-            <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px; background-color:#fff; box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.04); z-index: 10; position: relative;">
+            <div class="naten-input-area" id="naten-input-container">
                 <input type="text" id="naten-in" placeholder="${config.branding.inputText}" style="flex:1; border:none; outline:none; font-family:'Sora';">
                 <button id="naten-send">
                 <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11.5003 12H5.41872M5.24634 12.7972L4.24158 15.7986C3.69128 17.4424 3.41613 18.2643 3.61359 18.7704C3.78506 19.21 4.15335 19.5432 4.6078 19.6701C5.13111 19.8161 5.92151 19.4604 7.50231 18.7491L17.6367 14.1886C19.1797 13.4942 19.9512 13.1471 20.1896 12.6648C20.3968 12.2458 20.3968 11.7541 20.1896 11.3351C19.9512 10.8529 19.1797 10.5057 17.6367 9.81135L7.48483 5.24303C5.90879 4.53382 5.12078 4.17921 4.59799 4.32468C4.14397 4.45101 3.77572 4.78336 3.60365 5.22209C3.40551 5.72728 3.67772 6.54741 4.22215 8.18767L5.24829 11.2793C5.34179 11.561 5.38855 11.7019 5.407 11.8459C5.42338 11.9738 5.42321 12.1032 5.40651 12.231C5.38768 12.375 5.34057 12.5157 5.24634 12.7972Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
@@ -174,16 +200,42 @@
     const input = document.getElementById('naten-in');
     const box = wrapper.querySelector('.naten-chat-box');
     const sendBtn = document.getElementById('naten-send');
+    const inputContainer = document.getElementById('naten-input-container');
+
+    // Build standalone typing indicator object frame inside the message stream view pool
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'naten-typing-indicator';
+    typingIndicator.innerHTML = '<div class="naten-typing-dot"></div><div class="naten-typing-dot"></div><div class="naten-typing-dot"></div>';
+    msgs.appendChild(typingIndicator);
 
     wrapper.querySelector('.naten-chat-toggle').onclick = () => box.classList.toggle('active');
 
-    function toggleChatInput(disable, placeholderText = null) {
+    // Refined Input Locking Pipeline with differentiated system feedback strings
+    function toggleChatInput(disable, lockingReason = "BUTTONS") {
         input.disabled = disable;
         sendBtn.disabled = disable;
+
         if (disable) {
-            input.placeholder = placeholderText || "Sila lengkapkan pilihan atau borang di atas...";
+            inputContainer.classList.add('disabled-bg');
+            if (lockingReason === "FORM") {
+                input.placeholder = "Sila isi borang di atas dahulu...";
+            } else {
+                input.placeholder = "Sila buat pilihan di atas dahulu...";
+            }
         } else {
-            input.placeholder = placeholderText || config.branding.inputText;
+            inputContainer.classList.remove('disabled-bg');
+            input.placeholder = config.branding.inputText;
+        }
+    }
+
+    function showTypingIndicator(show) {
+        if (show) {
+            // Detach and append to ensure it always evaluates at the absolute foot of scrolling stack
+            msgs.appendChild(typingIndicator);
+            typingIndicator.style.display = 'flex';
+            msgs.scrollTop = msgs.scrollHeight;
+        } else {
+            typingIndicator.style.display = 'none';
         }
     }
 
@@ -197,12 +249,12 @@
         return await res.json();
     }
 
-    // Process rendering the structural responses from n8n engine payload matches
     function renderBotResponse(data) {
+        showTypingIndicator(false);
         msgs.innerHTML += `<div class="naten-msg bot">${data.text}</div>`;
 
         if (data.buttons) {
-            toggleChatInput(true);
+            toggleChatInput(true, "BUTTONS");
             const btnWrap = document.createElement('div');
             btnWrap.className = 'naten-btn-wrapper';
 
@@ -221,7 +273,7 @@
         }
 
         if (data.form) {
-            toggleChatInput(true);
+            toggleChatInput(true, "FORM");
             const fDiv = document.createElement('div');
             fDiv.className = 'naten-form';
             let html = `<div style="font-weight:600; margin-bottom:10px;">${data.form.title}</div>`;
@@ -264,34 +316,39 @@
         const val = displayOverride || input.value.trim();
         if (!val) return;
 
-        // Render User bubble immediately
         msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${val}</div>`;
         input.value = '';
         msgs.scrollTop = msgs.scrollHeight;
 
-        // LOCAL INTERCEPT LOOP: Check onboarding states before passing values out to remote n8n instances
+        toggleChatInput(false);
+
         if (internalState === "AWAITING_NAME") {
             userName = val;
             internalState = "READY_FOR_N8N";
-            toggleChatInput(false);
 
-            // Generate immediate internal local confirmation greeting turn
+            showTypingIndicator(true);
             setTimeout(() => {
+                showTypingIndicator(false);
                 msgs.innerHTML += `<div class="naten-msg bot">Terima kasih ${userName}. Ada apa yang boleh saya bantu mengenai sistem hari ini?</div>`;
                 msgs.scrollTop = msgs.scrollHeight;
-            }, 400);
+            }, 1000);
             return;
         }
 
-        // Standard operational pipeline state: Pass payload parameters straight to n8n runtime
+        showTypingIndicator(true);
         const payload = hiddenData ? { formResponse: hiddenData, name: userName } : { chatInput: val, name: userName };
-        const data = await apiCall(payload);
-        renderBotResponse(data);
+
+        try {
+            const data = await apiCall(payload);
+            renderBotResponse(data);
+        } catch (err) {
+            showTypingIndicator(false);
+            console.error(err);
+        }
     }
 
-    // Local explicit instantiation for Onboarding flows (Pertanyaan vs Aduan) avoiding early webhook calls
     function instantiateLocalForm() {
-        toggleChatInput(true);
+        toggleChatInput(true, "FORM");
         const fDiv = document.createElement('div');
         fDiv.className = 'naten-form';
         fDiv.innerHTML = `
@@ -327,12 +384,17 @@
             internalState = "READY_FOR_N8N";
             toggleChatInput(false);
 
-            // Pass execution values out to remote webhook configurations cleanly now
             msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${displayText}</div>`;
             msgs.scrollTop = msgs.scrollHeight;
 
-            const data = await apiCall({ formResponse: results, initialFlow: "Aduan" });
-            renderBotResponse(data);
+            showTypingIndicator(true);
+            try {
+                const data = await apiCall({ formResponse: results, initialFlow: "Aduan" });
+                renderBotResponse(data);
+            } catch (err) {
+                showTypingIndicator(false);
+                console.error(err);
+            }
         };
 
         msgs.appendChild(fDiv);
@@ -351,8 +413,7 @@
         const welcomeText = config.branding.welcomeText || "How can we help?";
         msgs.innerHTML += `<div class="naten-msg bot">${welcomeText}</div>`;
 
-        // Explicitly load standard options array layout structure
-        toggleChatInput(true, "Sila pilih Pertanyaan atau Aduan untuk bermula...");
+        toggleChatInput(true, "BUTTONS");
         const btnWrap = document.createElement('div');
         btnWrap.className = 'naten-btn-wrapper';
 
@@ -371,11 +432,10 @@
                     msgs.innerHTML += `<div class="naten-msg bot">Sila isi borang aduan di bawah:</div>`;
                     instantiateLocalForm();
                 } else {
-                    // Pertanyaan path selection: Capture tracking identity locally
                     internalState = "AWAITING_NAME";
                     msgs.innerHTML += `<div class="naten-msg user">${buttonLabel}</div>`;
                     msgs.innerHTML += `<div class="naten-msg bot">Sila nyatakan nama penuh anda terlebih dahulu:</div>`;
-                    toggleChatInput(false, "Taip nama anda di sini...");
+                    toggleChatInput(false);
                     msgs.scrollTop = msgs.scrollHeight;
                 }
             };
@@ -389,7 +449,7 @@
 
     materializeInitialOptions();
 
-    sendBtn.onclick = () => handleSendMessage();
+    sendBtn.onclick = () => { if (!input.disabled) handleSendMessage(); };
     input.onkeypress = (e) => { if (e.key === 'Enter' && !input.disabled) handleSendMessage(); };
 
 })();
