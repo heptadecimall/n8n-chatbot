@@ -40,8 +40,7 @@
             background: rgba(255, 255, 255, 1); backdrop-filter: blur(10px);
             box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: none;
             flex-direction: column; z-index: 9999; overflow: hidden;
-            /* gray-500 external border line */
-            border: 1px solid #6b7280; 
+            border: 1px solid #d1d5db; 
         }
         .naten-chat-box.active { display: flex; }
         
@@ -63,7 +62,7 @@
         /* Materialized Option Button Wrapper */
         .naten-btn-wrapper {
             display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
-            justify-content: flex-start; /* Kept on the left under bot bubbles */
+            justify-content: flex-start; 
         }
         .naten-btn { 
             padding: 8px 12px; border-radius: 20px; border: 1px solid var(--primary);
@@ -72,21 +71,41 @@
         }
         .naten-btn:hover { background: var(--primary); color: white; }
 
-        /* Materialized Forms (Left side alignment) */
-        .naten-form { background: #f9f9f9; padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px solid #eee; align-self: flex-start; width: 85%; box-sizing: border-box; }
+        /* --- White Background Form Container --- */
+        .naten-form { 
+            background: #ffffff; 
+            padding: 15px; 
+            border-radius: 15px; 
+            margin-top: 10px; 
+            border: 1px solid #eee; 
+            align-self: flex-start; 
+            width: 85%; 
+            box-sizing: border-box;
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 4px 12px;
+        }
         .naten-form input { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora'; box-sizing: border-box; }
         .naten-form button { width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: 600; }
         
-        /* --- HUGE UI ALERT/NOTIF BADGE DISCLAIMER --- */
+        /* --- Hide Arrow Buttons on Number Inputs --- */
+        .naten-form input[type="number"]::-webkit-outer-spin-button,
+        .naten-form input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .naten-form input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        /* Disclaimer Notification Badge */
         .naten-disclaimer {
-            background: #fffbeb; /* Soft yellowish background */
-            color: #92400e; /* Deep amber/brown text */
+            background: #fffbeb; 
+            color: #92400e; 
             font-size: 12px;
             padding: 14px 16px;
             margin: -5px 0 10px 0;
-            border-radius: 16px; /* Fully rounded card look */
-            border: 1px solid #fef3c7; /* Matching yellowish border inner highlight */
-            outline: 1px solid #f59e0b; /* Prominent amber outline edge */
+            border-radius: 16px; 
+            border: 1px solid #fef3c7; 
+            outline: 1px solid #f59e0b; 
             line-height: 1.5;
             text-align: left;
             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
@@ -157,19 +176,15 @@
         const val = displayOverride || input.value.trim();
         if (!val) return;
 
-        // User texts/selections ALWAYS align to the Right
         msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${val}</div>`;
         input.value = '';
         msgs.scrollTop = msgs.scrollHeight;
 
-        // Send data payload to n8n
         const payload = hiddenData ? { formResponse: hiddenData } : { chatInput: val };
         const data = await apiCall(payload);
 
-        // Bot responds on Left side
         msgs.innerHTML += `<div class="naten-msg bot">${data.text}</div>`;
 
-        // Materialize Dynamic Option Choices (Positioned on the Left under Bot)
         if (data.buttons) {
             const btnWrap = document.createElement('div');
             btnWrap.className = 'naten-btn-wrapper';
@@ -179,7 +194,7 @@
                 btn.className = 'naten-btn';
                 btn.innerText = b;
                 btn.onclick = () => {
-                    btnWrap.remove(); // Options collapse/vanish cleanly once clicked
+                    btnWrap.remove();
                     handleSendMessage(b);
                 };
                 btnWrap.appendChild(btn);
@@ -187,7 +202,6 @@
             msgs.appendChild(btnWrap);
         }
 
-        // Materialize Interactive Forms (Positioned on the Left under Bot)
         if (data.form) {
             const fDiv = document.createElement('div');
             fDiv.className = 'naten-form';
@@ -218,30 +232,26 @@
                     displayText += `• **${f.label}:** ${val}\n`;
                 });
 
-                fDiv.remove(); // Forms completely vanish upon interaction completion
-                handleSendMessage(displayText, results); // Log parameters right-aligned
+                fDiv.remove();
+                handleSendMessage(displayText, results);
             };
             msgs.appendChild(fDiv);
         }
         msgs.scrollTop = msgs.scrollHeight;
     }
 
-    // Initial message window load rules
     function materializeInitialOptions() {
         msgs.innerHTML = '';
 
-        // Badge Disclaimer (First element inside panel stack)
         const disclaimerText = config.branding.disclaimer || "Notis: Perbualan ini mungkin dirakam untuk tujuan kualiti.";
         const disclaimerDiv = document.createElement('div');
         disclaimerDiv.className = 'naten-disclaimer';
-        disclaimerDiv.innerHTML = `<strong>⚠️ Sistem Notis</strong><span>${disclaimerText}</span>`;
+        disclaimerDiv.innerHTML = `<strong>⚠️ Nota</strong><span>${disclaimerText}</span>`;
         msgs.appendChild(disclaimerDiv);
 
-        // Greetings bubble (Left side)
         const welcomeText = config.branding.welcomeText || "How can we help?";
         msgs.innerHTML += `<div class="naten-msg bot">${welcomeText}</div>`;
 
-        // Configuration-driven layout selection buttons
         const initialButtons = config.branding.initialButtons;
 
         if (initialButtons && Array.isArray(initialButtons)) {
@@ -254,8 +264,8 @@
                 btn.innerText = buttonLabel;
 
                 btn.onclick = () => {
-                    btnWrap.remove(); // Disappears instantly on click action
-                    handleSendMessage(buttonLabel); // Directs log context to the Right side
+                    btnWrap.remove();
+                    handleSendMessage(buttonLabel);
                 };
 
                 btnWrap.appendChild(btn);
