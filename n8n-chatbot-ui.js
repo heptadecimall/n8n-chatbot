@@ -55,6 +55,9 @@
         .naten-msg.user { background: var(--primary); color: white; align-self: flex-end; }
         .naten-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee; }
         
+        /* Modified system display style to keep option/form logs on the left */
+        .naten-msg.submission-log { background: #f0ecfc; color: #333; align-self: flex-start; border: 1px solid var(--secondary); opacity: 0.95; }
+
         /* Materialized Buttons */
         .naten-btn { 
             padding: 8px 12px; border-radius: 20px; border: 1px solid var(--primary);
@@ -67,18 +70,19 @@
         .naten-form { background: #f9f9f9; padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px solid #eee; }
         .naten-form input { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora'; box-sizing: border-box; }
         .naten-form button { width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: 600; }
+        
         /* Disclaimer Notification Badge */
         .naten-disclaimer {
             background: #f8f9fa;
             color: #727272;
             font-size: 11px;
             padding: 12px 16px;
-            margin: -20px -20px 15px -20px; /* Aligns to the top edges of the message box */
+            margin: -20px -20px 15px -20px;
             text-align: center;
             border-bottom: 1px solid #ededed;
             line-height: 1.4;
             position: sticky;
-            top: -20px; /* Keeps it visible even as they start scrolling */
+            top: -20px;
             z-index: 10;
         }
 
@@ -139,12 +143,17 @@
         return await res.json();
     }
 
-    async function handleSendMessage(displayOverride, hiddenData = null) {
+    async function handleSendMessage(displayOverride, hiddenData = null, isSystemLog = false) {
         const val = displayOverride || input.value.trim();
         if (!val) return;
 
-        // Show the pretty version (Bullet points) in the UI
-        msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${val}</div>`;
+        // Condition to align text logging to the Left (as system log) or Right (as user message)
+        if (isSystemLog) {
+            msgs.innerHTML += `<div class="naten-msg bot submission-log" style="white-space: pre-wrap;">${val}</div>`;
+        } else {
+            msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${val}</div>`;
+        }
+
         input.value = '';
         msgs.scrollTop = msgs.scrollHeight;
 
@@ -162,7 +171,10 @@
                 const btn = document.createElement('button');
                 btn.className = 'naten-btn';
                 btn.innerText = b;
-                btn.onclick = () => handleSendMessage(b);
+                btn.onclick = () => {
+                    btnWrap.remove(); // Removes the buttons upon choice interaction
+                    handleSendMessage(b, null, true); // Log choice bubble on the Left
+                };
                 btnWrap.appendChild(btn);
             });
             msgs.appendChild(btnWrap);
@@ -195,41 +207,38 @@
 
             fDiv.querySelector('#f-sub').onclick = () => {
                 const results = {};
-                let displayText = `**${data.form.title} Details:**\n`; // Header for the bubble
+                let displayText = `**${data.form.title} Submitted:**\n`;
 
                 data.form.fields.forEach(f => {
                     const val = fDiv.querySelector(`#f-${f.name}`).value;
                     results[f.name] = val;
-                    displayText += `• **${f.label}:** ${val}\n`; // Formats as bullet points
+                    displayText += `• **${f.label}:** ${val}\n`;
                 });
 
-                // 1. Send the HIDDEN JSON to n8n for processing
-                // 2. But show the BEAUTIFUL Bullet points in the chat UI
-                handleSendMessage(displayText, results);
-                fDiv.remove();
+                fDiv.remove(); // Clear out the entire form container
+                handleSendMessage(displayText, results, true); // Puts form summary log on the Left
             };
             msgs.appendChild(fDiv);
         }
+        msgs.scrollTop = msgs.scrollHeight;
     }
 
+    // Initial load configurations
     function materializeInitialOptions() {
-
-        // 1. Clear container first to prevent double-loading
         msgs.innerHTML = '';
 
-        // 2. Add the Disclaimer Notification Badge
-        // It pulls text from config.branding.disclaimer
+        // Disclaimer Badge
         const disclaimerText = config.branding.disclaimer || "Notis: Perbualan ini mungkin dirakam untuk tujuan kualiti.";
         const disclaimerDiv = document.createElement('div');
         disclaimerDiv.className = 'naten-disclaimer';
         disclaimerDiv.innerHTML = `<strong>Sistem Notis</strong> ${disclaimerText}`;
         msgs.appendChild(disclaimerDiv);
 
-        // 3. Get the welcome text from config
+        // Welcome message
         const welcomeText = config.branding.welcomeText || "How can we help?";
         msgs.innerHTML += `<div class="naten-msg bot">${welcomeText}</div>`;
 
-        // 4. Look for buttons in the config
+        // Load Initial Configuration Buttons
         const initialButtons = config.branding.initialButtons;
 
         if (initialButtons && Array.isArray(initialButtons)) {
@@ -238,16 +247,17 @@
             btnWrap.style.display = 'flex';
             btnWrap.style.flexWrap = 'wrap';
             btnWrap.style.gap = '8px';
-            // Align buttons based on widget position
             btnWrap.style.justifyContent = config.style.position === 'right' ? 'flex-end' : 'flex-start';
 
             initialButtons.forEach(buttonLabel => {
                 const btn = document.createElement('button');
-                btn.className = 'naten-btn'; // Fixed class name
+                btn.className = 'naten-btn';
                 btn.innerText = buttonLabel;
 
-                // Use the correct function name: handleSendMessage
-                btn.onclick = () => handleSendMessage(buttonLabel);
+                btn.onclick = () => {
+                    btnWrap.remove(); // Disappears immediately when interacted with
+                    handleSendMessage(buttonLabel, null, true); // Renders logging context to the Left side
+                };
 
                 btnWrap.appendChild(btn);
             });
@@ -257,7 +267,6 @@
         msgs.scrollTop = msgs.scrollHeight;
     }
 
-    // Call the function
     materializeInitialOptions();
 
     document.getElementById('naten-send').onclick = () => handleSendMessage();
