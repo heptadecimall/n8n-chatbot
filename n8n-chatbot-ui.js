@@ -8,11 +8,11 @@
     // 2. Get Config from the Window object
     const config = window.ChatWidgetConfig || {
         webhook: { url: '' },
-        branding: { logo: "https://www.shutterstock.com/image-vector/chat-bot-icon-virtual-smart-600nw-2478937553.jpg", names: 'Naten AI, Nath AI', welcomeText: 'Hello!', inputText: 'Type your message...' },
+        branding: { logo: "https://www.shutterstock.com/image-vector/chat-bot-icon-virtual-smart-600nw-2478937553.jpg", names: 'Hasan', welcomeText: 'Hai! Ada apa yang boleh saya bantu?', inputText: 'Taip mesej anda...' },
         style: { primaryColor: '#854fff' }
     };
 
-    // 3. Inject Enhanced Styles (Glassmorphism + Sora)
+    // 3. Inject Enhanced Styles
     const styleSheet = document.createElement('style');
     styleSheet.textContent = `
         .naten-chat-wrapper {
@@ -21,176 +21,67 @@
             --secondary: ${config.style.secondaryColor || config.style.primaryColor};
         }
         .naten-chat-toggle {
-            position: fixed; bottom: 32px; ${config.style.position}: 32px;
+            position: fixed; bottom: 32px; right: 32px;
             width: 64px; height: 64px; border-radius: 50%;
             background: var(--primary); color: white; border: none; cursor: pointer;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             transition: all 0.2s ease; 
         }
-        .naten-chat-toggle:hover{
-            transform: scale(1.05); 
-            filter: brightness(1.1); 
-        }
         .naten-chat-box {
-            position: fixed; bottom: 110px; ${config.style.position}: 32px;
+            position: fixed; bottom: 110px; right: 32px;
             width: 380px; height: 580px; border-radius: 24px;
-            background: rgba(255, 255, 255, 1); backdrop-filter: blur(10px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: none;
-            flex-direction: column; z-index: 9999; overflow: hidden;
+            background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+            display: none; flex-direction: column; z-index: 9999; overflow: hidden;
             border: 1px solid #d1d5db; 
         }
         .naten-chat-box.active { display: flex; }
-        
-        #naten-send {
-            background: none; border: none; cursor: pointer; font-size: 18px;
-            transition: all 0.2s ease;
-            display: flex; align-items: center; justify-content: center;
-        }
-        #naten-send:hover {
-            color: var(--primary);
-            transform: translateX(3px); 
-        }
-        #naten-send:disabled {
-            color: #d1d5db;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .naten-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .naten-msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+        .naten-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background-color: #f9fafb; }
+        .naten-msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
         .naten-msg.user { background: var(--primary); color: white; align-self: flex-end; }
-        .naten-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee;white-space: pre-wrap; }
+        .naten-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee; }
         
-        /* --- Typing Indicator Animation --- */
         .naten-typing-indicator {
             background: white; border: 1px solid #eee; align-self: flex-start;
-            display: none; items-center: center; gap: 4px; padding: 14px 18px; border-radius: 16px;
+            display: none; items-center: center; gap: 4px; padding: 12px 16px; border-radius: 16px;
         }
-        .naten-typing-dot {
-            width: 6px; height: 6px; background: #888; border-radius: 50%;
-            animation: natenBounce 1.4s infinite ease-in-out both;
-        }
+        .naten-typing-dot { width: 6px; height: 6px; background: #888; border-radius: 50%; animation: natenBounce 1.4s infinite ease-in-out both; }
         .naten-typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .naten-typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        
-        @keyframes natenBounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
-        }
+        @keyframes natenBounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
 
-        /* Materialized Option Button Wrapper */
-        .naten-btn-wrapper {
-            display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
-            justify-content: flex-start; 
-        }
-        .naten-btn { 
-            padding: 8px 12px; border-radius: 20px; border: 1px solid var(--primary);
-            background: white; color: var(--primary); cursor: pointer; font-family: 'Sora';
-            transition: 0.2s; font-size: 12px;
-        }
+        .naten-input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; background: #fff; transition: background 0.2s; }
+        .naten-input-area.disabled-bg { background-color: #f3f4f6 !important; }
+        #naten-in:disabled { background: transparent; cursor: not-allowed; }
+
+        .naten-btn-wrapper { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+        .naten-btn { padding: 8px 12px; border-radius: 20px; border: 1px solid var(--primary); background: white; color: var(--primary); cursor: pointer; font-size: 12px; transition: 0.2s; }
         .naten-btn:hover { background: var(--primary); color: white; }
 
-        /* --- White Background Form Container --- */
-        .naten-form { 
-            background: #ffffff; 
-            padding: 15px; 
-            border-radius: 15px; 
-            margin-top: 10px; 
-            border: 1px solid #eee; 
-            align-self: flex-start; 
-            width: 85%; 
-            box-sizing: border-box;
-            box-shadow: rgba(0, 0, 0, 0.05) 0px 4px 12px;
-        }
-        .naten-form input { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora'; box-sizing: border-box; }
-        .naten-form button { width: 100%; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; font-weight: 600; }
-        
-        /* --- Hide Arrow Buttons on Number Inputs --- */
-        .naten-form input[type="number"]::-webkit-outer-spin-button,
-        .naten-form input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .naten-form input[type="number"] {
-            -moz-appearance: textfield;
-        }
-        
-        /* Disclaimer Notification Badge */
-        .naten-disclaimer {
-            background: #fffbeb; 
-            color: #92400e; 
-            font-size: 12px;
-            padding: 14px 16px;
-            margin: -5px 0 10px 0;
-            border-radius: 16px; 
-            border: 1px solid #fef3c7; 
-            outline: 1px solid #f59e0b; 
-            line-height: 1.5;
-            text-align: left;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .naten-disclaimer strong { 
-            color: #78350f; 
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .bg {
-            background-color:#fff;
-            background-image:linear-gradient(135deg, transparent 0%, #fff 25%, #fff 75%, transparent 100%), url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAIklEQVQoU2N89+7dfwYsQEhIiBEkzDgkFGDzAbIY2Cv4AACvrBgJjYNGfwAAAABJRU5ErkJggg==);
-        }
-        
-        /* --- Input Bar Area Style Update --- */
-        .naten-input-area {
-            padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; 
-            background-color: #fff; box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.04); 
-            z-index: 10; position: relative; transition: background-color 0.2s ease;
-        }
-        .naten-input-area.disabled-bg {
-            background-color: #f3f4f6 !important; /* gray-100 full container area tint */
-        }
-        #naten-in:disabled {
-            background-color: transparent;
-            cursor: not-allowed;
-            color: #9ca3af;
-        }
+        .naten-form { background: #fff; padding: 15px; border-radius: 15px; border: 1px solid #eee; width: 90%; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .naten-form input, .naten-form select { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora'; box-sizing: border-box; }
+        .naten-form button { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; }
     `;
     document.head.appendChild(styleSheet);
-
-    const nameArray = config.branding.names.split(',').map(item => item.trim());
-    const randomIndex = Math.floor(Math.random() * nameArray.length);
-    const finalName = nameArray[randomIndex];
 
     let internalState = "CHOOSE_FLOW";
     let userName = "";
 
-    // 4. Build UI
     const wrapper = document.createElement('div');
     wrapper.className = 'naten-chat-wrapper';
     wrapper.innerHTML = `
-        <button class="naten-chat-toggle">
-            <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22Z" fill="#ffffff"></path> </g></svg></button>
-        <div class="naten-chat-box bg">
-            <div style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px; background-color:#fff; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06); z-index: 10; position: relative;">
+        <button class="naten-chat-toggle"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></button>
+        <div class="naten-chat-box">
+            <div style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:10px;">
                 <img src="${config.branding.logo}" style="width:30px; height:30px; border-radius:50%;">
-                <div>
-                    <div style="font-weight:700; font-size:16px;">${finalName}</div>
-                    <div style="font-size:11px; color:#888;">${config.branding.responseTimeText || 'Online'}</div>
-                </div>
+                <div style="font-weight:700;">${config.branding.names || 'Hasan'}</div>
             </div>
-            <div class="naten-messages bg" id="naten-ms"></div>
+            <div class="naten-messages" id="naten-ms"></div>
             <div class="naten-input-area" id="naten-input-container">
-                <input type="text" id="naten-in" placeholder="${config.branding.inputText}" style="flex:1; border:none; outline:none; font-family:'Sora';">
-                <button id="naten-send">
-                <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11.5003 12H5.41872M5.24634 12.7972L4.24158 15.7986C3.69128 17.4424 3.41613 18.2643 3.61359 18.7704C3.78506 19.21 4.15335 19.5432 4.6078 19.6701C5.13111 19.8161 5.92151 19.4604 7.50231 18.7491L17.6367 14.1886C19.1797 13.4942 19.9512 13.1471 20.1896 12.6648C20.3968 12.2458 20.3968 11.7541 20.1896 11.3351C19.9512 10.8529 19.1797 10.5057 17.6367 9.81135L7.48483 5.24303C5.90879 4.53382 5.12078 4.17921 4.59799 4.32468C4.14397 4.45101 3.77572 4.78336 3.60365 5.22209C3.40551 5.72728 3.67772 6.54741 4.22215 8.18767L5.24829 11.2793C5.34179 11.561 5.38855 11.7019 5.407 11.8459C5.42338 11.9738 5.42321 12.1032 5.40651 12.231C5.38768 12.375 5.34057 12.5157 5.24634 12.7972Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
+                <input type="text" id="naten-in" placeholder="${config.branding.inputText}" style="flex:1; border:none; outline:none;">
+                <button id="naten-send" style="background:none; border:none; cursor:pointer;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
             </div>
         </div>
     `;
@@ -198,75 +89,45 @@
 
     const msgs = document.getElementById('naten-ms');
     const input = document.getElementById('naten-in');
-    const box = wrapper.querySelector('.naten-chat-box');
     const sendBtn = document.getElementById('naten-send');
     const inputContainer = document.getElementById('naten-input-container');
 
-    // Build standalone typing indicator object frame inside the message stream view pool
     const typingIndicator = document.createElement('div');
     typingIndicator.className = 'naten-typing-indicator';
     typingIndicator.innerHTML = '<div class="naten-typing-dot"></div><div class="naten-typing-dot"></div><div class="naten-typing-dot"></div>';
-    msgs.appendChild(typingIndicator);
 
-    wrapper.querySelector('.naten-chat-toggle').onclick = () => box.classList.toggle('active');
+    wrapper.querySelector('.naten-chat-toggle').onclick = () => wrapper.querySelector('.naten-chat-box').classList.toggle('active');
 
-    // Refined Input Locking Pipeline with differentiated system feedback strings
-    function toggleChatInput(disable, lockingReason = "BUTTONS") {
+    function toggleChatInput(disable, reason = "BUTTONS") {
         input.disabled = disable;
         sendBtn.disabled = disable;
-
-        if (disable) {
-            inputContainer.classList.add('disabled-bg');
-            if (lockingReason === "FORM") {
-                input.placeholder = "Sila isi borang di atas dahulu...";
-            } else {
-                input.placeholder = "Sila buat pilihan di atas dahulu...";
-            }
-        } else {
-            inputContainer.classList.remove('disabled-bg');
-            input.placeholder = config.branding.inputText;
-        }
+        inputContainer.classList.toggle('disabled-bg', disable);
+        input.placeholder = disable ? (reason === "FORM" ? "Sila isi borang di atas dahulu..." : "Sila buat pilihan di atas dahulu...") : config.branding.inputText;
     }
 
-    function showTypingIndicator(show) {
-        if (show) {
-            // Detach and append to ensure it always evaluates at the absolute foot of scrolling stack
-            msgs.appendChild(typingIndicator);
-            typingIndicator.style.display = 'flex';
-            msgs.scrollTop = msgs.scrollHeight;
-        } else {
-            typingIndicator.style.display = 'none';
-        }
+    function showTyping(show) {
+        if (show) { msgs.appendChild(typingIndicator); typingIndicator.style.display = 'flex'; }
+        else { typingIndicator.style.display = 'none'; }
+        msgs.scrollTop = msgs.scrollHeight;
     }
 
-    // 5. Messaging Engine
     async function apiCall(payload) {
-        const res = await fetch(config.webhook.url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        const res = await fetch(config.webhook.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         return await res.json();
     }
 
     function renderBotResponse(data) {
-        showTypingIndicator(false);
-        msgs.innerHTML += `<div class="naten-msg bot">${data.text}</div>`;
+        showTyping(false);
+        if (data.text) msgs.innerHTML += `<div class="naten-msg bot">${data.text}</div>`;
 
         if (data.buttons) {
             toggleChatInput(true, "BUTTONS");
             const btnWrap = document.createElement('div');
             btnWrap.className = 'naten-btn-wrapper';
-
             data.buttons.forEach(b => {
                 const btn = document.createElement('button');
-                btn.className = 'naten-btn';
-                btn.innerText = b;
-                btn.onclick = () => {
-                    btnWrap.remove();
-                    toggleChatInput(false);
-                    handleSendMessage(b);
-                };
+                btn.className = 'naten-btn'; btn.innerText = b;
+                btn.onclick = () => { btnWrap.remove(); toggleChatInput(false); handleSendMessage(b); };
                 btnWrap.appendChild(btn);
             });
             msgs.appendChild(btnWrap);
@@ -277,173 +138,84 @@
             const fDiv = document.createElement('div');
             fDiv.className = 'naten-form';
             let html = `<div style="font-weight:600; margin-bottom:10px;">${data.form.title}</div>`;
-
             data.form.fields.forEach(f => {
-                html += `
-            <div style="margin-bottom:8px;">
-                <label style="font-size:11px; color:#666;">${f.label}</label>
-                <input type="${f.type || 'text'}" 
-                       id="f-${f.name}" 
-                       class="form-input" 
-                       placeholder="${f.label}"
-                       ${f.type === 'number' ? 'step="any" inputmode="decimal"' : ''}>
-            </div>`;
+                html += `<div style="margin-bottom:8px;"><label style="font-size:11px; color:#666;">${f.label}</label>`;
+                if (f.type === 'select') {
+                    html += `<select id="f-${f.name}">${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+                } else {
+                    html += `<input type="${f.type || 'text'}" id="f-${f.name}" placeholder="${f.label}">`;
+                }
+                html += `</div>`;
             });
-
-            html += `<button id="f-sub" class="form-submit">Submit</button>`;
+            html += `<button id="f-sub">Submit</button>`;
             fDiv.innerHTML = html;
-
             fDiv.querySelector('#f-sub').onclick = () => {
-                const results = {};
-                let displayText = `**${data.form.title} Details:**\n`;
-
-                data.form.fields.forEach(f => {
-                    const val = fDiv.querySelector(`#f-${f.name}`).value;
-                    results[f.name] = val;
-                    displayText += `• **${f.label}:** ${val}\n`;
-                });
-
-                fDiv.remove();
-                toggleChatInput(false);
-                handleSendMessage(displayText, results);
+                const res = {}; let txt = `**${data.form.title}**\n`;
+                data.form.fields.forEach(f => { const v = fDiv.querySelector(`#f-${f.name}`).value; res[f.name] = v; if (v) txt += `• ${f.label}: ${v}\n`; });
+                fDiv.remove(); toggleChatInput(false); handleSendMessage(txt, res);
             };
             msgs.appendChild(fDiv);
         }
         msgs.scrollTop = msgs.scrollHeight;
     }
 
-    async function handleSendMessage(displayOverride, hiddenData = null) {
-        const val = displayOverride || input.value.trim();
-        if (!val) return;
-
-        msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${val}</div>`;
-        input.value = '';
-        msgs.scrollTop = msgs.scrollHeight;
-
-        toggleChatInput(false);
+    async function handleSendMessage(display, hidden = null) {
+        const val = display || input.value.trim(); if (!val) return;
+        msgs.innerHTML += `<div class="naten-msg user">${val}</div>`;
+        input.value = ''; msgs.scrollTop = msgs.scrollHeight;
 
         if (internalState === "AWAITING_NAME") {
-            userName = val;
-            internalState = "READY_FOR_N8N";
-
-            showTypingIndicator(true);
-            setTimeout(() => {
-                showTypingIndicator(false);
-                msgs.innerHTML += `<div class="naten-msg bot">Terima kasih ${userName}. Ada apa yang boleh saya bantu mengenai sistem hari ini?</div>`;
-                msgs.scrollTop = msgs.scrollHeight;
-            }, 1000);
+            userName = val; internalState = "READY_FOR_N8N"; showTyping(true);
+            setTimeout(() => { showTyping(false); msgs.innerHTML += `<div class="naten-msg bot">Terima kasih ${userName}. Bagaimana saya boleh bantu anda hari ini?</div>`; }, 800);
             return;
         }
 
-        showTypingIndicator(true);
-        const payload = hiddenData ? { formResponse: hiddenData, name: userName } : { chatInput: val, name: userName };
-
-        try {
-            const data = await apiCall(payload);
-            renderBotResponse(data);
-        } catch (err) {
-            showTypingIndicator(false);
-            console.error(err);
-        }
+        showTyping(true);
+        const data = await apiCall(hidden ? { formResponse: hidden, name: userName } : { chatInput: val, name: userName });
+        renderBotResponse(data);
     }
 
     function instantiateLocalForm() {
         toggleChatInput(true, "FORM");
         const fDiv = document.createElement('div');
         fDiv.className = 'naten-form';
-        let html = `<div style="font-weight:600; margin-bottom:10px;">${data.form.title}</div>`;
-
-        data.form.fields.forEach(f => {
-            html += `<div style="margin-bottom:8px;">
-                            <label style="font-size:11px; color:#666;">${f.label}</label>`;
-
-            if (f.type === 'select') {
-                // Logik untuk Dropdown Kategori
-                html += `<select id="f-${f.name}" class="form-input" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora';">
-                                ${f.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                             </select>`;
-            } else {
-                // Logik untuk Input Biasa
-                html += `<input type="${f.type || 'text'}" 
-                                   id="f-${f.name}" 
-                                   class="form-input" 
-                                   placeholder="${f.label}"
-                                   ${f.type === 'number' ? 'step="any" inputmode="decimal"' : ''}>`;
-            }
-            html += `</div>`;
-        });
-
-        html += `<button id="f-sub" class="form-submit">Submit</button>`;
-        fDiv.innerHTML = html;
-
-        fDiv.querySelector('#f-sub').onclick = () => {
-            const results = {};
-            let displayText = `**${data.form.title} Details:**\n`;
-
-            data.form.fields.forEach(f => {
-                const val = fDiv.querySelector(`#f-${f.name}`).value;
-                results[f.name] = val;
-                // Hanya paparkan dalam chat jika ada nilai (untuk emel optional)
-                if (val) displayText += `• **${f.label}:** ${val}\n`;
-            });
-
-            fDiv.remove();
-            toggleChatInput(false);
-            handleSendMessage(displayText, results);
+        fDiv.innerHTML = `
+            <div style="font-weight:600; margin-bottom:10px;">Borang Aduan Rasmi</div>
+            <input type="text" id="f-name" placeholder="Nama Penuh">
+            <input type="number" id="f-phone" placeholder="No. Telefon" inputmode="decimal">
+            <input type="email" id="f-email" placeholder="Emel (Optional)">
+            <input type="text" id="f-address" placeholder="Alamat Penuh">
+            <label style="font-size:11px; color:#666;">Kategori Aduan</label>
+            <select id="f-cat"><option>Lampu Jalan</option><option>Sampah</option><option>Jalan Berlubang</option><option>Lain-lain</option></select>
+            <input type="text" id="f-details" placeholder="Butiran Aduan">
+            <button id="f-sub">Submit</button>
+        `;
+        fDiv.querySelector('#f-sub').onclick = async () => {
+            const res = { name: fDiv.querySelector('#f-name').value, phone: fDiv.querySelector('#f-phone').value, email: fDiv.querySelector('#f-email').value, address: fDiv.querySelector('#f-address').value, category: fDiv.querySelector('#f-cat').value, reason: fDiv.querySelector('#f-details').value };
+            if (!res.name || !res.phone || !res.address) { alert("Sila isi maklumat wajib."); return; }
+            fDiv.remove(); toggleChatInput(false); internalState = "READY_FOR_N8N";
+            handleSendMessage(`**Borang Aduan**\n• Nama: ${res.name}\n• No: ${res.phone}\n• Kategori: ${res.category}`, res);
         };
         msgs.appendChild(fDiv);
     }
 
-
-    function materializeInitialOptions() {
-        msgs.innerHTML = '';
-
-        const disclaimerText = config.branding.disclaimer || "Notis: Perbualan ini mungkin dirakam untuk tujuan kualiti.";
-        const disclaimerDiv = document.createElement('div');
-        disclaimerDiv.className = 'naten-disclaimer';
-        disclaimerDiv.innerHTML = `<strong>⚠️ Nota</strong><span>${disclaimerText}</span>`;
-        msgs.appendChild(disclaimerDiv);
-
-        const welcomeText = config.branding.welcomeText || "How can we help?";
-        msgs.innerHTML += `<div class="naten-msg bot">${welcomeText}</div>`;
-
-        toggleChatInput(true, "BUTTONS");
-        const btnWrap = document.createElement('div');
-        btnWrap.className = 'naten-btn-wrapper';
-
-        const initialButtons = ["Pertanyaan", "Aduan"];
-
-        initialButtons.forEach(buttonLabel => {
-            const btn = document.createElement('button');
-            btn.className = 'naten-btn';
-            btn.innerText = buttonLabel;
-
-            btn.onclick = () => {
-                btnWrap.remove();
-
-                if (buttonLabel === "Aduan") {
-                    msgs.innerHTML += `<div class="naten-msg user">${buttonLabel}</div>`;
-                    msgs.innerHTML += `<div class="naten-msg bot">Sila isi borang aduan di bawah:</div>`;
-                    instantiateLocalForm();
-                } else {
-                    internalState = "AWAITING_NAME";
-                    msgs.innerHTML += `<div class="naten-msg user">${buttonLabel}</div>`;
-                    msgs.innerHTML += `<div class="naten-msg bot">Sila nyatakan nama penuh anda terlebih dahulu:</div>`;
-                    toggleChatInput(false);
-                    msgs.scrollTop = msgs.scrollHeight;
-                }
+    function init() {
+        msgs.innerHTML = `<div class="naten-msg bot">${config.branding.welcomeText}</div>`;
+        toggleChatInput(true);
+        const btnWrap = document.createElement('div'); btnWrap.className = 'naten-btn-wrapper';
+        ["Pertanyaan", "Aduan"].forEach(l => {
+            const b = document.createElement('button'); b.className = 'naten-btn'; b.innerText = l;
+            b.onclick = () => {
+                btnWrap.remove(); msgs.innerHTML += `<div class="naten-msg user">${l}</div>`;
+                if (l === "Aduan") { msgs.innerHTML += `<div class="naten-msg bot">Sila isi borang di bawah:</div>`; instantiateLocalForm(); }
+                else { internalState = "AWAITING_NAME"; msgs.innerHTML += `<div class="naten-msg bot">Sila nyatakan nama anda:</div>`; toggleChatInput(false); }
             };
-
-            btnWrap.appendChild(btn);
+            btnWrap.appendChild(b);
         });
-
         msgs.appendChild(btnWrap);
-        msgs.scrollTop = msgs.scrollHeight;
     }
 
-    materializeInitialOptions();
-
-    sendBtn.onclick = () => { if (!input.disabled) handleSendMessage(); };
+    init();
+    sendBtn.onclick = () => handleSendMessage();
     input.onkeypress = (e) => { if (e.key === 'Enter' && !input.disabled) handleSendMessage(); };
-
 })();
