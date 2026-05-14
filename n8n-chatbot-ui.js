@@ -351,55 +351,49 @@
         toggleChatInput(true, "FORM");
         const fDiv = document.createElement('div');
         fDiv.className = 'naten-form';
-        fDiv.innerHTML = `
-            <div style="font-weight:600; margin-bottom:10px;">Borang Aduan Rasmi</div>
-            <div style="margin-bottom:8px;">
-                <label style="font-size:11px; color:#666;">Nama Penuh</label>
-                <input type="text" id="f-name" class="form-input" placeholder="Nama Penuh">
-            </div>
-            <div style="margin-bottom:8px;">
-                <label style="font-size:11px; color:#666;">Nombor Pesanan</label>
-                <input type="number" id="f-order_id" class="form-input" placeholder="Nombor Pesanan" step="any" inputmode="decimal">
-            </div>
-            <div style="margin-bottom:8px;">
-                <label style="font-size:11px; color:#666;">Sebab Aduan</label>
-                <input type="text" id="f-reason" class="form-input" placeholder="Sebab Aduan">
-            </div>
-            <button id="f-sub" class="form-submit">Submit</button>
-        `;
+        let html = `<div style="font-weight:600; margin-bottom:10px;">${data.form.title}</div>`;
 
-        fDiv.querySelector('#f-sub').onclick = async () => {
-            const results = {
-                name: fDiv.querySelector('#f-name').value,
-                order_id: fDiv.querySelector('#f-order_id').value,
-                reason: fDiv.querySelector('#f-reason').value
-            };
+        data.form.fields.forEach(f => {
+            html += `<div style="margin-bottom:8px;">
+                            <label style="font-size:11px; color:#666;">${f.label}</label>`;
 
-            let displayText = `Borang Aduan Rasmi Details:\n`;
-            displayText += `• Nama Penuh: ${results.name}\n`;
-            displayText += `• Nombor Pesanan: ${results.order_id}\n`;
-            displayText += `• Sebab Aduan: ${results.reason}\n`;
+            if (f.type === 'select') {
+                // Logik untuk Dropdown Kategori
+                html += `<select id="f-${f.name}" class="form-input" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Sora';">
+                                ${f.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                             </select>`;
+            } else {
+                // Logik untuk Input Biasa
+                html += `<input type="${f.type || 'text'}" 
+                                   id="f-${f.name}" 
+                                   class="form-input" 
+                                   placeholder="${f.label}"
+                                   ${f.type === 'number' ? 'step="any" inputmode="decimal"' : ''}>`;
+            }
+            html += `</div>`;
+        });
+
+        html += `<button id="f-sub" class="form-submit">Submit</button>`;
+        fDiv.innerHTML = html;
+
+        fDiv.querySelector('#f-sub').onclick = () => {
+            const results = {};
+            let displayText = `**${data.form.title} Details:**\n`;
+
+            data.form.fields.forEach(f => {
+                const val = fDiv.querySelector(`#f-${f.name}`).value;
+                results[f.name] = val;
+                // Hanya paparkan dalam chat jika ada nilai (untuk emel optional)
+                if (val) displayText += `• **${f.label}:** ${val}\n`;
+            });
 
             fDiv.remove();
-            internalState = "READY_FOR_N8N";
             toggleChatInput(false);
-
-            msgs.innerHTML += `<div class="naten-msg user" style="white-space: pre-wrap;">${displayText}</div>`;
-            msgs.scrollTop = msgs.scrollHeight;
-
-            showTypingIndicator(true);
-            try {
-                const data = await apiCall({ formResponse: results, initialFlow: "Aduan" });
-                renderBotResponse(data);
-            } catch (err) {
-                showTypingIndicator(false);
-                console.error(err);
-            }
+            handleSendMessage(displayText, results);
         };
-
         msgs.appendChild(fDiv);
-        msgs.scrollTop = msgs.scrollHeight;
     }
+
 
     function materializeInitialOptions() {
         msgs.innerHTML = '';
