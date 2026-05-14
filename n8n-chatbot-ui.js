@@ -62,7 +62,7 @@
         .naten-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
         .naten-msg { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
         .naten-msg.user { background: var(--primary); color: white; align-self: flex-end; }
-        .naten-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee; }
+        .naten-msg.bot { background: white; color: #333; align-self: flex-start; border: 1px solid #eee;white-space: pre-wrap; }
         
         /* --- Typing Indicator Animation --- */
         .naten-typing-indicator {
@@ -375,10 +375,10 @@
                 reason: fDiv.querySelector('#f-reason').value
             };
 
-            let displayText = `**Borang Aduan Rasmi Details:**\n`;
-            displayText += `• **Nama Penuh:** ${results.name}\n`;
-            displayText += `• **Nombor Pesanan:** ${results.order_id}\n`;
-            displayText += `• **Sebab Aduan:** ${results.reason}\n`;
+            let displayText = `Borang Aduan Rasmi Details:\n`;
+            displayText += `• Nama Penuh: ${results.name}\n`;
+            displayText += `• Nombor Pesanan: ${results.order_id}\n`;
+            displayText += `• Sebab Aduan: ${results.reason}\n`;
 
             fDiv.remove();
             internalState = "READY_FOR_N8N";
